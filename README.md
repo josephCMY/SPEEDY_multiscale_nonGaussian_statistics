@@ -16,9 +16,6 @@ The resources provided here support reproducibility of the figures and key diagn
 - `diagnostics_pkl_files/`  
   Directory containing `.pkl` files with ensemble diagnostics, statistics, and other intermediate data products used to create the figures in the manuscript.
 
-- `figures/`  
-  Directory where manuscript figures will be outputted
-
 - `SPEEDY_ensemble_data/`
   Directory containing a subset of the SPEEDY ensembles' surface pressure fields
 
