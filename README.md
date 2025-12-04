@@ -1,8 +1,8 @@
-# Data Release for "A distributional view on atmospheric predictability within a 1000-member general circulation model"
+# Data Release for "The multiscale non-Gaussian statistics of free-running 1000-member general circulation model ensembles"
 
 This repository contains data and scripts used to generate the figures and analysis in following manuscript
 
-> **A distributional view on atmospheric predictability within a 1000-member general circulation model** by Man-Yau Chan, Hristo G. Chipilski, Jack Schwartz, Max Albrecht, Aiden Ridgway, and Saurav Dey Shuvo
+> **The multiscale non-Gaussian statistics of free-running 1000-member general circulation model ensembles** by Man-Yau Chan, Hristo G. Chipilski, Jack Schwartz, Max Albrecht, Aiden Ridgway, and Saurav Dey Shuvo
 
 &nbsp; &nbsp; 
 
