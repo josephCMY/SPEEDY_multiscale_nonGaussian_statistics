@@ -9,6 +9,11 @@ from matplotlib import use as mpl_use
 mpl_use('agg')
 import matplotlib.pyplot as plt
 from copy import deepcopy
+from matplotlib import ticker
+from gc import collect as gc_collect
+import pickle
+from scipy.stats import norm
+from matplotlib.cm import get_cmap
 from scipy.spatial import ConvexHull
 
 
@@ -23,8 +28,8 @@ date_ed = datetime(year=2011, month=3, day=1)
 time_int = timedelta( days=1 )
 
 # Path to SPEEDY reference ensemble and perturbed ensemble
-path_reference_ens_dir = 'SPEEDY_ensemble_data/reference_ens/data_raw'
-path_perturbed_ens_dir = 'SPEEDY_ensemble_data/perturbed_ens/data_raw'
+path_reference_ens_dir = '/fs/ess/PAS2856/SPEEDY_ensemble_data/reference_ens/data_raw'
+path_perturbed_ens_dir = '/fs/ess/PAS2856/SPEEDY_ensemble_data/perturbed_ens/data_raw'
 path_dict = {'ref': path_reference_ens_dir, 'prt': path_perturbed_ens_dir}
 
 # Typical date formatting
@@ -226,7 +231,7 @@ pca_dict[2] = [S3, ref_eigvec3, S3/np.sum(S)]
 '''
 
 # Figure to hold PCAs and PCA projections at three dates
-fig, axs = plt.subplots( nrows=4, ncols=3, figsize=(8,10) )
+fig, axs = plt.subplots( nrows=4, ncols=3, figsize=(9,10) )
 
 # Subplot to visualize the leading three PCAs
 for i in range(3):
@@ -353,11 +358,11 @@ for iperiod, day_st in enumerate([4,6,8]):
 
         # Cosmetics
         ax.set_title(
-            '%s%d) PC%d VS PC%d (%s)' % 
+            '%s%d) PC%d VS PC%d ($t^*=$%4.2f)' % 
             (   
                 ['b','c','d'][iperiod], 
                 icomb+1, comb_pair[0], comb_pair[1], 
-                date_list[-1].strftime('%d/%m') 
+                ((date_list[-1] - datetime(year=2011,month=1,day=1)).total_seconds()/86400)/70
              ), 
             loc='left'
         )
@@ -372,5 +377,5 @@ for iperiod, day_st in enumerate([4,6,8]):
 
 
 plt.tight_layout()
-plt.savefig('figures/manuscript_fig_pca.pdf')
+plt.savefig('manuscript_fig_pca.pdf')
 

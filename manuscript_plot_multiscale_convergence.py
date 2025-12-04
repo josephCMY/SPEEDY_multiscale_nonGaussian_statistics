@@ -12,8 +12,11 @@ import numpy as np
 import pickle as pkl
 from datetime import datetime, timedelta
 import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
 import matplotlib.dates as mdates 
 from copy import deepcopy
+from gc import collect as gc_collect
+from scipy.stats import kstest
 from os.path import isfile
 
 
@@ -328,6 +331,7 @@ def plot_multiscale_evolution_of_convergence( conv_dict, date_list ):
         'p_values':     { 'color': 'k'          , 'linestyle':'--'}
     }
 
+    ndates = len(date_list)
 
     # Init figure
     fig, axs = plt.subplots( nrows=3, ncols=4 , figsize=( 11,8 ) )
@@ -341,10 +345,10 @@ def plot_multiscale_evolution_of_convergence( conv_dict, date_list ):
 
         # Plot similarity fractions
         ax = axs[0, iwb]
-        ax.plot( date_list, conv_dict['ks'][wbname][vname]+1e-6, 
-                    label = 'Sim. Frac.', color=curve_control_dict['ks']['color'],
-                    linestyle=curve_control_dict['ks']['linestyle']
-                    )
+        ax.plot( np.arange(ndates)/70, conv_dict['ks'][wbname][vname], #+1e-6, #date_list, conv_dict['ks'][wbname][vname]+1e-6, 
+                 label = 'Sim. Frac.', color=curve_control_dict['ks']['color'],
+                 linestyle=curve_control_dict['ks']['linestyle']
+        )
         # ax.set_yscale('log')
         ax.set_title( 
             'a%d) MSS Ratio & Sim. Frac. \n      (%s)' % (iwb+1, wbinfo_dict[wbname]), #vinfo_dict[vname]['pretty']),
@@ -361,13 +365,15 @@ def plot_multiscale_evolution_of_convergence( conv_dict, date_list ):
                 conv_dict[mname][wbname][vname]['perturbed_ens'] 
                 / conv_dict[mname][wbname][vname]['reference_ens'] 
         )
-        ax.plot( date_list, ratio, 
+        ax.plot( np.arange(ndates)/70, ratio, 
                 label = '%s Ratio' % minfo_dict[mname]['fullname'], 
                 color=curve_control_dict[mname]['color'],
                 linestyle=curve_control_dict[mname]['linestyle']
             )
         ax.set_ylim([-0.05,1.05])
         ax.axhline(1, color = 'k', zorder=0, linewidth=0.5, linestyle='--') 
+        ax.set_yscale('log')
+        ax.set_ylim([1e-4,2])
 
 
         # Plot Skewness and kurtosis
@@ -378,7 +384,7 @@ def plot_multiscale_evolution_of_convergence( conv_dict, date_list ):
                 / conv_dict[mname][wbname][vname]['reference_ens'] 
             )
             ratio[ratio > 50] = np.nan
-            ax.plot( date_list[1:], ratio[1:], 
+            ax.plot( np.arange(ndates-1)/70, ratio[1:], 
                     label = '%s Ratio' % minfo_dict[mname]['fullname'], 
                     color=curve_control_dict[mname]['color'],
                     linestyle=curve_control_dict[mname]['linestyle']
@@ -401,7 +407,7 @@ def plot_multiscale_evolution_of_convergence( conv_dict, date_list ):
                 / conv_dict[mname][wbname][vname]['reference_ens'] 
             )
             ratio[ratio > 50] = np.nan
-            ax.plot( date_list[1:], ratio[1:], 
+            ax.plot( np.arange(ndates-1)/70, ratio[1:],   #date_list[1:], ratio[1:], 
                     label = '%s Ratio' % minfo_dict[mname]['fullname'], 
                     color=curve_control_dict[mname]['color'],
                     linestyle=curve_control_dict[mname]['linestyle']
@@ -421,29 +427,32 @@ def plot_multiscale_evolution_of_convergence( conv_dict, date_list ):
         
     # Make pretty date labels
     for iax, ax in enumerate(axs.flatten()):
-        ax.set_xlim( [datetime(year=2011, month=1, day=1), datetime( year=2011, month=6, day=1)])
-        # ax.set_ylim([0,1])
-        ax.xaxis.set_major_locator(mdates.MonthLocator())
-        ax.xaxis.set_major_formatter(mdates.DateFormatter('%b')) 
-        ax.tick_params(axis='x', labelbottom=True, rotation=45) 
+        ax.set_xlim([0,1.8])
+
+        # Indicate x-axis
+        if iax > 7:
+            ax.set_xlabel(r'$t^*$ (no units)', fontsize=12)
+        else:
+            ax.set_xlabel(' ', fontsize=12)
+
+        # Indicate saturation times
         if iax == 0:
-            ax.axvline( 
-                datetime( year=2011, month=4, day=20), color='r', 
-                linestyle='-.', zorder=0, label = 'Sim. Frac. Sat.' 
-            )
-            # ax.axvline( datetime( year=2011, month=4, day=20), color='r', linestyle=':' )
-            ax.axvline( 
-                datetime( year=2011, month=4, day=1), color='k', 
-                linestyle='-.', zorder=0, label = 'MSS Sat.' 
-            )
+            ax.axvline( 1.6, color='r', linestyle='-.', zorder=0, label = 'Sim. Frac. Sat.' )
+            ax.axvline( 1, color='k',  linestyle='-.', zorder=0, label = 'MSS Sat.' )
+        elif iax % 4 == 2 or iax % 4 == 3:
+            ax.axvline( 1.4, color='r', linestyle='-.', zorder=0)
+            ax.axvline( 1, color='k',  linestyle='-.', zorder=0)
+        elif iax % 4 == 0 or iax % 4 == 1:
+            ax.axvline( 1.6, color='r', linestyle='-.', zorder=0)
+            ax.axvline( 1, color='k',  linestyle='-.', zorder=0)
         else:
             ax.axvline( 
-                datetime( year=2011, month=4, day=20), color='r', 
+                1.5, color='r', 
                 linestyle='-.', zorder=0
             )
             # ax.axvline( datetime( year=2011, month=4, day=20), color='r', linestyle=':' )
             ax.axvline( 
-                datetime( year=2011, month=4, day=1), color='k', 
+                1, color='k', 
                 linestyle='-.', zorder=0
             )
 
@@ -720,27 +729,27 @@ def plot_multiscale_equilibrium( conv_dict, date_list ):
 
 
 # Loading data into dictionary
-conv_dict = load_data_on_multiscale_statistical_convergence( date_list, lat_list, pval=0.05 )
-for mname in minfo_dict.keys():
-    conv_dict[mname] = load_data_on_multiscale_evolution_of_metric( mname, date_list, lat_list )
-with open('convergence_plot_info.pkl', 'wb') as f:
-    pkl.dump(conv_dict, f)
+# conv_dict = load_data_on_multiscale_statistical_convergence( date_list, lat_list, pval=0.05 )
+# for mname in minfo_dict.keys():
+#     conv_dict[mname] = load_data_on_multiscale_evolution_of_metric( mname, date_list, lat_list )
+# with open('convergence_plot_info.pkl', 'wb') as f:
+#     pkl.dump(conv_dict, f)
 
 with open('convergence_plot_info.pkl', 'rb') as f:
     conv_dict = pkl.load(f)
 
 fig = plot_multiscale_evolution_of_convergence( conv_dict, date_list )
-plt.savefig( 'figures/manuscript_fig_convergence.pdf')
+plt.savefig( 'manuscript_fig_convergence.pdf')
 plt.close()
 
 
 fig = plot_multiscale_equilibrium( conv_dict, date_list )
-plt.savefig( 'figures/manuscript_fig_equlibrium.pdf')
+plt.savefig( 'manuscript_fig_equlibrium.pdf')
 plt.close()
 
-# fig = plot_multiscale_evolution_of_average_nonGauss( conv_dict, date_list )
-# plt.savefig('figures/manuscript_fig_ratio_of_ratios.pdf')
-# plt.close()
+fig = plot_multiscale_evolution_of_average_nonGauss( conv_dict, date_list )
+plt.savefig('manuscript_fig_ratio_of_ratios.pdf')
+plt.close()
 
 
 
